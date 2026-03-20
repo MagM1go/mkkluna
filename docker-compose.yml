@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: luna
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: tz
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U luna -d tz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migration:
+    build: .
+    command: sh -c "alembic upgrade head && python -m luna.seed"
+    restart: on-failure
+    working_dir: /app
+    environment:
+      DATABASE_URL: "postgresql+psycopg://luna:pass@postgres:5432/tz"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  luna:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
