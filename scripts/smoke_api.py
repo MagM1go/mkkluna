@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import asyncio
 import json
 import os
@@ -13,7 +11,6 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any
-
 
 API_KEY = "super-secret-api-key"
 HOST = "127.0.0.1"
@@ -85,7 +82,9 @@ def _run_checks() -> None:
 
     building_id = buildings[0]["id"]
     status, building_orgs = _request(f"/api/v1/buildings/{building_id}/organizations")
-    _assert(status == 200, f"GET /buildings/{building_id}/organizations returned {status}")
+    _assert(
+        status == 200, f"GET /buildings/{building_id}/organizations returned {status}"
+    )
     _assert(
         isinstance(building_orgs, list) and building_orgs,
         "Organizations by building is empty",
@@ -103,7 +102,9 @@ def _run_checks() -> None:
     validate_depth(activity_tree)
 
     food_node = next(node for node in activity_tree if node["name"] == "Еда")
-    dairy_node = next(node for node in food_node["children"] if node["name"] == "Молочная продукция")
+    dairy_node = next(
+        node for node in food_node["children"] if node["name"] == "Молочная продукция"
+    )
 
     status, orgs_by_activity = _request(
         f"/api/v1/activities/{dairy_node['id']}/organizations"
@@ -136,7 +137,8 @@ def _run_checks() -> None:
         f"GET /organizations/search/by-activity returned {status}",
     )
     _assert(
-        {item["name"] for item in by_activity_name} == {"Молоко Плюс", "ООО Рога и Копыта"},
+        {item["name"] for item in by_activity_name}
+        == {"Молоко Плюс", "ООО Рога и Копыта"},
         "Search by activity did not return expected descendant organizations",
     )
 
@@ -166,16 +168,24 @@ def _run_checks() -> None:
         status == 200,
         f"GET /organizations/search/by-location bbox returned {status}",
     )
-    _assert(isinstance(by_bbox, list) and by_bbox, "Bounding-box search returned no organizations")
+    _assert(
+        isinstance(by_bbox, list) and by_bbox,
+        "Bounding-box search returned no organizations",
+    )
 
     organization_id = by_name[0]["id"]
     status, organization = _request(f"/api/v1/organizations/{organization_id}")
     _assert(status == 200, f"GET /organizations/{organization_id} returned {status}")
-    _assert(organization["name"] == "Молоко Плюс", "Organization lookup returned unexpected record")
+    _assert(
+        organization["name"] == "Молоко Плюс",
+        "Organization lookup returned unexpected record",
+    )
 
     status, unauthorized = _request("/api/v1/buildings", api_key="wrong-key")
     _assert(status == 401, f"Unauthorized request returned {status}")
-    _assert(unauthorized["detail"] == "Invalid API key", "Unexpected unauthorized response")
+    _assert(
+        unauthorized["detail"] == "Invalid API key", "Unexpected unauthorized response"
+    )
 
 
 def main() -> int:
