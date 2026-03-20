@@ -20,6 +20,7 @@ FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONBUFFERED=1
+ENV DATABASE_URL="sqlite+aiosqlite:////tmp/luna.db"
 
 WORKDIR /app
 RUN useradd -u 1000 -m appuser
@@ -31,4 +32,4 @@ COPY --from=builder /app/alembic /app/alembic
 
 USER appuser
 
-CMD ["uvicorn", "luna.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "python -m luna.bootstrap && uvicorn luna.main:app --host 0.0.0.0 --port 8000"]
